@@ -1,0 +1,6 @@
+id=fix_gsi_identity_crisis
+name=Fix GSI Identity Crisis
+version=1.0
+versionCode=10
+author=mrdoge0
+description=Fix GSI Identity Crisis (systemlessly btw). You'll see your actual device model instead of things like 'unknown' or 'AOSP on ARM64'.
