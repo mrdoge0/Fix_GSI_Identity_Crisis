@@ -11,6 +11,7 @@ if [ -f "$VENDORPROP" ]; then
     VENDORMANUFACTURER=$(grep -E 'ro.product.vendor.manufacturer=' "$VENDORPROP" | cut -d'=' -f2)
     VENDORMODEL=$(grep -E 'ro.product.vendor.model=' "$VENDORPROP" | cut -d'=' -f2)
 
+    # Do the props.
     if [ ! -z "$VENDORDEVICE" ]; then
         resetprop -n ro.product.brand "$VENDORBRAND"
         resetprop -n ro.product.device "$VENDORDEVICE"
@@ -28,8 +29,10 @@ if [ -f "$VENDORPROP" ]; then
         resetprop -n ro.product.system_ext.device "$VENDORDEVICE"
         resetprop -n ro.product.system_ext.manufacturer "$VENDORMANUFACTURER"
         resetprop -n ro.product.system_ext.model "$VENDORMODEL"
+        resetprop -n ro.com.google.clientidbase "android-$(echo $VENDORBRAND | awk '{print tolower($0)}')" # probably will be enough but might not work on some rare cases.
     fi
 
+    # Report your success.
     echo "Fix_GSI_Identity_Crisis: Operation finished"
     setprop ro.fix_gsi_identity_crisis.job_successful "1"
 else
