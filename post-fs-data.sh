@@ -29,8 +29,39 @@ if [ -f "$VENDORPROP" ]; then
         resetprop -n ro.product.system_ext.device "$VENDORDEVICE"
         resetprop -n ro.product.system_ext.manufacturer "$VENDORMANUFACTURER"
         resetprop -n ro.product.system_ext.model "$VENDORMODEL"
-        resetprop -n ro.com.google.clientidbase "android-$(echo $VENDORBRAND | awk '{print tolower($0)}')" # probably will be enough but might not work on some rare cases.
     fi
+
+    # A new experimental feature - fixing fingerprints (usable for Play Integrity)
+    SYSTEMPROP="/system/build.prop"
+    SYSTEMNAME=$(grep -E 'ro.product.system.name=' "$SYSTEMPROP" | cut -d'=' -f2)
+    SYSTEMVER=$(grep -E 'ro.build.version.release_or_codename=' "$SYSTEMPROP" | cut -d'=' -f2)
+    SYSTEMID=$(grep -E 'ro.build.id=' "$SYSTEMPROP" | cut -d'=' -f2)
+    SYSTEMINC=$(grep -E 'ro.build.version.incremental=' "$SYSTEMPROP" | cut -d'=' -f2)
+    SYSTEMTYPE=$(grep -E 'ro.build.type=' "$SYSTEMPROP" | cut -d'=' -f2)
+    SYSTEMTAGS=$(grep -E 'ro.build.tags=' "$SYSTEMPROP" | cut -d'=' -f2)
+
+    # Example result: "Xiaomi/aosp_arm64/lavender:15/BP1A.250305.001/example:userdebug/test-keys"
+    TRUEFINGERPRINT="$VENDORBRAND/$SYSTEMNAME/$VENDORDEVICE:$SYSTEMVER/$SYSTEMID/$SYSTEMINC:$SYSTEMTYPE/$SYSTEMTAGS"
+    resetprop -n ro.build.fingerprint "$TRUEFINGERPRINT"
+    resetprop -n ro.system.build.fingerprint "$TRUEFINGERPRINT"
+    resetprop -n ro.system_ext.build.fingerprint "$TRUEFINGERPRINT"
+    resetprop -n ro.product.build.fingerprint "$TRUEFINGERPRINT"
+    resetprop -n ro.odm.build.fingerprint "$TRUEFINGERPRINT"
+    resetprop -n ro.vendor.build.fingerprint "$TRUEFINGERPRINT"
+    resetprop -n ro.vendor_dlkm.build.fingerprint "$TRUEFINGERPRINT"
+
+    # Example result: "aosp_arm64-userdebug 15 BP1A.250305.001 example test-keys"
+    TRUEDESC="$SYSTEMNAME-$SYSTEMTYPE $SYSTEMVER $SYSTEMID $SYSTEMINC $SYSTEMTAGS"
+    resetprop -n ro.build.description "$TRUEDESC"
+    resetprop -n ro.system.build.description "$TRUEDESC"
+    resetprop -n ro.system_ext.build.description "$TRUEDESC"
+    resetprop -n ro.product.build.description "$TRUEDESC"
+    resetprop -n ro.odm.build.description "$TRUEDESC"
+    resetprop -n ro.vendor.build.description "$TRUEDESC"
+    resetprop -n ro.vendor_dlkm.build.description "$TRUEDESC"
+
+    # bonus
+    resetprop -n ro.build.flavor "$SYSTEMNAME-$SYSTEMTYPE"
 
     # Report your success.
     echo "Fix_GSI_Identity_Crisis: Operation finished"
