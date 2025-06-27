@@ -33,7 +33,7 @@ if [ -f "$VENDORPROP" ]; then
 
     # A new experimental feature - fixing fingerprints (usable for Play Integrity)
     SYSTEMPROP="/system/build.prop"
-    SYSTEMNAME=$(grep -E 'ro.product.system.name=' "$SYSTEMPROP" | cut -d'=' -f2)
+    SYSTEMNAME=$(grep -E 'ro.system.build.fingerprint=' "$SYSTEMPROP" | cut -d'=' -f2 | cut -d'/' -f2 | cut -d'/' -f1)
     SYSTEMVER=$(grep -E 'ro.build.version.release_or_codename=' "$SYSTEMPROP" | cut -d'=' -f2)
     SYSTEMID=$(grep -E 'ro.build.id=' "$SYSTEMPROP" | cut -d'=' -f2)
     SYSTEMINC=$(grep -E 'ro.build.version.incremental=' "$SYSTEMPROP" | cut -d'=' -f2)
