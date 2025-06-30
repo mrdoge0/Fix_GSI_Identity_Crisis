@@ -3,4 +3,4 @@ name=Fix GSI Identity Crisis
 version=1.25
 versionCode=13
 author=mrdoge0
-description=Fix GSI Identity Crisis (systemlessly btw). You'll see your actual device model instead of things like 'unknown' or 'AOSP on ARM64'.
+description=Fix GSI Identity Crisis (systemlessly btw). You'll see your actual device model instead of things like 'TrebleDroid vanilla' or 'AOSP on ARM64'.
