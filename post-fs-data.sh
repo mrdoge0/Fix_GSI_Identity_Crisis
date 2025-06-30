@@ -29,6 +29,22 @@ if [ -f "$VENDORPROP" ]; then
         resetprop -n ro.product.system_ext.device "$VENDORDEVICE"
         resetprop -n ro.product.system_ext.manufacturer "$VENDORMANUFACTURER"
         resetprop -n ro.product.system_ext.model "$VENDORMODEL"
+        resetprop -n ro.product.bootimage.brand "$VENDORBRAND"
+        resetprop -n ro.product.bootimage.device "$VENDORDEVICE"
+        resetprop -n ro.product.bootimage.manufacturer "$VENDORMANUFACTURER"
+        resetprop -n ro.product.bootimage.model "$VENDORMODEL"
+    fi
+
+    # Market name support - Separate from standard resetprops because some devices don't have marketname props.
+    ODMMN=$(grep -E 'ro.product.vendor.marketname=' "/odm/etc/build.prop" | cut -d'=' -f2)
+    if [ ! -z $ODMMN ]; then
+        resetprop -n ro.product.marketname "$ODMMN"
+        resetprop -n ro.product.system.marketname "$ODMMN"
+        resetprop -n ro.product.system_ext.marketname "$ODMMN"
+        resetprop -n ro.product.product.marketname "$ODMMN"
+        resetprop -n ro.product.vendor.marketname "$ODMMN"
+        resetprop -n ro.product.system_dlkm.marketname "$VENDORDEVICE"
+        resetprop -n ro.product.bootimage.marketname "$VENDORDEVICE"
     fi
 
     # A new experimental feature - fixing fingerprints (usable for Play Integrity)
@@ -40,6 +56,14 @@ if [ -f "$VENDORPROP" ]; then
     SYSTEMTYPE=$(grep -E 'ro.build.type=' "$SYSTEMPROP" | cut -d'=' -f2)
     SYSTEMTAGS=$(grep -E 'ro.build.tags=' "$SYSTEMPROP" | cut -d'=' -f2)
 
+    # Vendor fingerprint
+    VENDORNAME=$(grep -E 'ro.product.vendor.name=' "$VENDORPROP" | cut -d'=' -f2 | cut -d'/' -f2 | cut -d'/' -f1)
+    VENDORVER=$(grep -E 'ro.vendor.build.version.release_or_codename=' "$VENDORPROP" | cut -d'=' -f2)
+    VENDORID=$(grep -E 'ro.vendor.build.id=' "$VENDORPROP" | cut -d'=' -f2)
+    VENDORINC=$(grep -E 'ro.vendor.build.version.incremental=' "$VENDORPROP" | cut -d'=' -f2)
+    VENDORTYPE=$(grep -E 'ro.vendor.build.type=' "$VENDORPROP" | cut -d'=' -f2)
+    VENDORTAGS=$(grep -E 'ro.vendor.build.tags=' "$VENDORPROP" | cut -d'=' -f2)
+
     # Example result: "Xiaomi/aosp_arm64/lavender:15/BP1A.250305.001/example:userdebug/test-keys"
     TRUEFINGERPRINT="$VENDORBRAND/$SYSTEMNAME/$VENDORDEVICE:$SYSTEMVER/$SYSTEMID/$SYSTEMINC:$SYSTEMTYPE/$SYSTEMTAGS"
     resetprop -n ro.build.fingerprint "$TRUEFINGERPRINT"
@@ -47,8 +71,6 @@ if [ -f "$VENDORPROP" ]; then
     resetprop -n ro.system_ext.build.fingerprint "$TRUEFINGERPRINT"
     resetprop -n ro.product.build.fingerprint "$TRUEFINGERPRINT"
     resetprop -n ro.odm.build.fingerprint "$TRUEFINGERPRINT"
-    resetprop -n ro.vendor.build.fingerprint "$TRUEFINGERPRINT"
-    resetprop -n ro.vendor_dlkm.build.fingerprint "$TRUEFINGERPRINT"
 
     # Example result: "aosp_arm64-userdebug 15 BP1A.250305.001 example test-keys"
     TRUEDESC="$SYSTEMNAME-$SYSTEMTYPE $SYSTEMVER $SYSTEMID $SYSTEMINC $SYSTEMTAGS"
@@ -57,8 +79,16 @@ if [ -f "$VENDORPROP" ]; then
     resetprop -n ro.system_ext.build.description "$TRUEDESC"
     resetprop -n ro.product.build.description "$TRUEDESC"
     resetprop -n ro.odm.build.description "$TRUEDESC"
-    resetprop -n ro.vendor.build.description "$TRUEDESC"
-    resetprop -n ro.vendor_dlkm.build.description "$TRUEDESC"
+
+    # True vendor fingerprint (sometimes they are spoofed)
+    TRUEVENFP="$VENDORBRAND/$VENDORNAME/$VENDORDEVICE:$VENDORVER/$VENDORID/$VENDORINC:$VENDORTYPE/$VENDORTAGS"
+    TRUEVENDESC="$VENDORNAME-$VENDORTYPE $VENDORVER $VENDORID $VENDORINC $VENDORTAGS"
+    resetprop -n ro.vendor.build.fingerprint "$TRUEVENFP"
+    resetprop -n ro.vendor_dlkm.build.fingerprint "$TRUEVENFP"
+    resetprop -n ro.bootimage.build.fingerprint "$TRUEVENFP"
+    resetprop -n ro.vendor.build.description "$TRUEVENDESC"
+    resetprop -n ro.vendor_dlkm.build.description "$TRUEVENDESC"
+    resetprop -n ro.bootimage.build.description "$TRUEVENDESC"
 
     # bonus
     resetprop -n ro.build.flavor "$SYSTEMNAME-$SYSTEMTYPE"
