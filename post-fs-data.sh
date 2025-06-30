@@ -70,7 +70,6 @@ if [ -f "$VENDORPROP" ]; then
     resetprop -n ro.system.build.fingerprint "$TRUEFINGERPRINT"
     resetprop -n ro.system_ext.build.fingerprint "$TRUEFINGERPRINT"
     resetprop -n ro.product.build.fingerprint "$TRUEFINGERPRINT"
-    resetprop -n ro.odm.build.fingerprint "$TRUEFINGERPRINT"
 
     # Example result: "aosp_arm64-userdebug 15 BP1A.250305.001 example test-keys"
     TRUEDESC="$SYSTEMNAME-$SYSTEMTYPE $SYSTEMVER $SYSTEMID $SYSTEMINC $SYSTEMTAGS"
@@ -78,16 +77,17 @@ if [ -f "$VENDORPROP" ]; then
     resetprop -n ro.system.build.description "$TRUEDESC"
     resetprop -n ro.system_ext.build.description "$TRUEDESC"
     resetprop -n ro.product.build.description "$TRUEDESC"
-    resetprop -n ro.odm.build.description "$TRUEDESC"
 
     # True vendor fingerprint (sometimes they are spoofed)
     TRUEVENFP="$VENDORBRAND/$VENDORNAME/$VENDORDEVICE:$VENDORVER/$VENDORID/$VENDORINC:$VENDORTYPE/$VENDORTAGS"
     TRUEVENDESC="$VENDORNAME-$VENDORTYPE $VENDORVER $VENDORID $VENDORINC $VENDORTAGS"
     resetprop -n ro.vendor.build.fingerprint "$TRUEVENFP"
     resetprop -n ro.vendor_dlkm.build.fingerprint "$TRUEVENFP"
+    resetprop -n ro.odm.build.fingerprint "$TRUEVENFP"
     resetprop -n ro.bootimage.build.fingerprint "$TRUEVENFP"
     resetprop -n ro.vendor.build.description "$TRUEVENDESC"
     resetprop -n ro.vendor_dlkm.build.description "$TRUEVENDESC"
+    resetprop -n ro.odm.build.description "$TRUEVENDESC"
     resetprop -n ro.bootimage.build.description "$TRUEVENDESC"
 
     # bonus
