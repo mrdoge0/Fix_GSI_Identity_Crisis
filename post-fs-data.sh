@@ -1,6 +1,10 @@
 #!/system/bin/sh
 # (c) 2025 mrdoge0, Free Software Licensed under Apache-2.0
 
+# Set up dotfile directory
+DFDIR="/data/adb/fix_gsi_identity_crisis.d"
+[ ! -d "$DFDIR" ] && mkdir "$DFDIR"
+
 # 99,999999999% of "vendor" filesystems come from stock ROMs or conventional custom ROMs, so they have the correct device info.
 VENDORPROP="/vendor/build.prop"
 
@@ -52,26 +56,36 @@ if [ -f "$VENDORPROP" ]; then
     SYSTEMNAME=$(grep -E 'ro.system.build.fingerprint=' "$SYSTEMPROP" | cut -d'=' -f2 | cut -d'/' -f2 | cut -d'/' -f1)
     SYSTEMVER=$(grep -E 'ro.build.version.release_or_codename=' "$SYSTEMPROP" | cut -d'=' -f2)
     SYSTEMID=$(grep -E 'ro.build.id=' "$SYSTEMPROP" | cut -d'=' -f2)
-    SYSTEMINC=$(grep -E 'ro.build.version.incremental=' "$SYSTEMPROP" | cut -d'=' -f2)
-    SYSTEMTYPE=$(grep -E 'ro.build.type=' "$SYSTEMPROP" | cut -d'=' -f2)
-    SYSTEMTAGS=$(grep -E 'ro.build.tags=' "$SYSTEMPROP" | cut -d'=' -f2)
+    if [ -f "$DFDIR/inc_spoof" ] && [ ! -z "$DFDIR/inc_spoof" ]; then
+        SYSTEMINC=$(cat "$DFDIR/inc_spoof")
+    else
+        SYSTEMINC=$(grep -E 'ro.build.version.incremental=' "$SYSTEMPROP" | cut -d'=' -f2)
+    fi
+    REALSYSTEMTYPE=$(grep -E 'ro.build.type=' "$SYSTEMPROP" | cut -d'=' -f2)
+    if [ ! -f "$DFDIR/spoof_user" ]; then
+        SYSTEMTYPE=$REALSYSTEMTYPE
+        SYSTEMTAGS=$(grep -E 'ro.build.tags=' "$SYSTEMPROP" | cut -d'=' -f2)
+    else
+        SYSTEMTYPE="user"
+        SYSTEMTAGS="release-keys"
+    fi
 
     # Vendor fingerprint
-    VENDORNAME=$(grep -E 'ro.product.vendor.name=' "$VENDORPROP" | cut -d'=' -f2 | cut -d'/' -f2 | cut -d'/' -f1)
+    VENDORNAME=$(grep -E 'ro.product.vendor.name=' "$VENDORPROP" | cut -d'=' -f2)
     VENDORVER=$(grep -E 'ro.vendor.build.version.release_or_codename=' "$VENDORPROP" | cut -d'=' -f2)
     VENDORID=$(grep -E 'ro.vendor.build.id=' "$VENDORPROP" | cut -d'=' -f2)
     VENDORINC=$(grep -E 'ro.vendor.build.version.incremental=' "$VENDORPROP" | cut -d'=' -f2)
     VENDORTYPE=$(grep -E 'ro.vendor.build.type=' "$VENDORPROP" | cut -d'=' -f2)
     VENDORTAGS=$(grep -E 'ro.vendor.build.tags=' "$VENDORPROP" | cut -d'=' -f2)
 
-    # Example result: "Xiaomi/aosp_arm64/lavender:15/BP1A.250305.001/example:userdebug/test-keys"
+    # Example result: "Xiaomi/treble_arm64_bvS/lavender:16/BP2A.250605.031.A3/OS2.0.215.0.WFGTRXM:userdebug/test-keys" (my device in my personal settings at this module :D)
     TRUEFINGERPRINT="$VENDORBRAND/$SYSTEMNAME/$VENDORDEVICE:$SYSTEMVER/$SYSTEMID/$SYSTEMINC:$SYSTEMTYPE/$SYSTEMTAGS"
     resetprop -n ro.build.fingerprint "$TRUEFINGERPRINT"
     resetprop -n ro.system.build.fingerprint "$TRUEFINGERPRINT"
     resetprop -n ro.system_ext.build.fingerprint "$TRUEFINGERPRINT"
     resetprop -n ro.product.build.fingerprint "$TRUEFINGERPRINT"
 
-    # Example result: "aosp_arm64-userdebug 15 BP1A.250305.001 example test-keys"
+    # Example result: "treble_arm64_bvS-userdebug 16 BP2A.250605.031.A3 OS2.0.215.0.WFGTRXM test-keys" (my device in my personal settings at this module :D)
     TRUEDESC="$SYSTEMNAME-$SYSTEMTYPE $SYSTEMVER $SYSTEMID $SYSTEMINC $SYSTEMTAGS"
     resetprop -n ro.build.description "$TRUEDESC"
     resetprop -n ro.system.build.description "$TRUEDESC"
@@ -79,6 +93,7 @@ if [ -f "$VENDORPROP" ]; then
     resetprop -n ro.product.build.description "$TRUEDESC"
 
     # True vendor fingerprint (sometimes they are spoofed)
+    # Example result: "Xiaomi/lineage_lavender/lavender:15/BP1A.250505.005/OS2.0.2.0.VFGMIXM:user/release-keys" (really a lineageos vendor with real user/release-keys, and i manually spoofed incremental to hyperos 2.0)
     TRUEVENFP="$VENDORBRAND/$VENDORNAME/$VENDORDEVICE:$VENDORVER/$VENDORID/$VENDORINC:$VENDORTYPE/$VENDORTAGS"
     TRUEVENDESC="$VENDORNAME-$VENDORTYPE $VENDORVER $VENDORID $VENDORINC $VENDORTAGS"
     resetprop -n ro.vendor.build.fingerprint "$TRUEVENFP"
@@ -90,8 +105,11 @@ if [ -f "$VENDORPROP" ]; then
     resetprop -n ro.odm.build.description "$TRUEVENDESC"
     resetprop -n ro.bootimage.build.description "$TRUEVENDESC"
 
-    # bonus
+    # bonuses
     resetprop -n ro.build.flavor "$SYSTEMNAME-$SYSTEMTYPE"
+    if [ "$REALSYSTEMTYPE" -ne "user" ]; then
+        resetprop -n ro.build.display.id "$TRUEDESC"
+    fi
 
     # Report your success.
     echo "Fix_GSI_Identity_Crisis: Operation finished"
