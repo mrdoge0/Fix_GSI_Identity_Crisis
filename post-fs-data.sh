@@ -58,14 +58,8 @@ if [ -f "${VENDORPROP}" ]; then
     fi
 
     # Get real build type and tags if not spoofed, get "user/release-keys" if spoofed
-    REALSYSTEMTYPE=$(grep -E 'ro.build.type=' "${SYSTEMPROP}" | cut -d'=' -f2)
-    if [ ! -f "${DFDIR}/spoof_user" ]; then
-        SYSTEMTYPE=${REALSYSTEMTYPE}
-        SYSTEMTAGS=$(grep -E 'ro.build.tags=' "${SYSTEMPROP}" | cut -d'=' -f2)
-    else
-        SYSTEMTYPE="user"
-        SYSTEMTAGS="release-keys"
-    fi
+    SYSTEMTYPE=$(grep -E 'ro.build.type=' "${SYSTEMPROP}" | cut -d'=' -f2)
+    SYSTEMTAGS=$(grep -E 'ro.build.tags=' "${SYSTEMPROP}" | cut -d'=' -f2)
 
     # Vendor props
     VENDORNAME=$(grep -E 'ro.product.vendor.name=' "${VENDORPROP}" | cut -d'=' -f2)
@@ -97,8 +91,16 @@ if [ -f "${VENDORPROP}" ]; then
 
     # bonuses
     resetprop -n ro.build.flavor "${SYSTEMNAME}-${SYSTEMTYPE}"
-    if [ "${REALSYSTEMTYPE}" -ne "user" ]; then
+    if [ "${SYSTEMTYPE}" != "user" ]; then
         resetprop -n ro.build.display.id "${TRUEDESC}"
+    fi
+
+    # Spoof to user/release-keys if enabled
+    if [ -f "${DFDIR}/spoof_user" ]; then
+        for PART in "" ".system" ".product" ".system_ext"; do
+            resetprop -n ro${PART}.build.type "user"
+            resetprop -n ro${PART}.build.tags "release-keys"
+        done
     fi
 
     # Report your success.
